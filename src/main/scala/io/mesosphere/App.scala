@@ -10,7 +10,7 @@ import spray.can.Http
 import akka.util.Timeout
 import scala.concurrent.duration._
 
-object CounterService extends App {
+object CounterDB extends App {
 
   // Host actor system
   implicit val system = ActorSystem("counter-service")
@@ -19,13 +19,13 @@ object CounterService extends App {
   implicit val timeout = Timeout(10.seconds)
 
   // Create the restApi service actor
-  val restApi = system.actorOf(Props[RestServiceActor], "rest-service")
+  val counterApi = system.actorOf(Props[CounterServiceActor])
 
   // Create the counter actor
   val counterActor = system.actorOf(Props[CounterActor])
 
   // Start an HTTP server at 0.0.0.0:7777
-  IO(Http) ! Http.Bind(restApi, interface = "0.0.0.0", port = 7777)
+  IO(Http) ! Http.Bind(counterApi, interface = "0.0.0.0", port = 7777)
 }
 
 
