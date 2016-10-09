@@ -1,15 +1,31 @@
 package io.mesosphere
 
 /**
- * @author ${user.name}
+ * @author Matt Gates
  */
-object App {
-  
-  def foo(x : Array[String]) = x.foldLeft("")((a,b) => a + b)
-  
-  def main(args : Array[String]) {
-    println( "Hello World!" )
-    println("concat arguments = " + foo(args))
-  }
 
+import akka.actor.{ActorSystem, Props}
+import akka.io.IO
+import spray.can.Http
+import akka.util.Timeout
+import scala.concurrent.duration._
+
+object CounterService extends App {
+
+  // Host actor system
+  implicit val system = ActorSystem("counter-service")
+
+  // Default timeout
+  implicit val timeout = Timeout(10.seconds)
+
+  // Create the restApi service actor
+  val restApi = system.actorOf(Props[RestServiceActor], "rest-service")
+
+  // Create the counter actor
+  val counterActor = system.actorOf(Props[CounterActor])
+
+  // Start an HTTP server at 0.0.0.0:7777
+  IO(Http) ! Http.Bind(restApi, interface = "0.0.0.0", port = 7777)
 }
+
+
