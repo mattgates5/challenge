@@ -1,9 +1,14 @@
 package io.mesosphere
 
 import akka.actor.{Actor,Props}
+import akka.event.Logging._
 import akka.pattern.ask
-import spray.routing.HttpService
 import akka.util.Timeout
+import spray.http.HttpRequest
+import spray.http.HttpResponse
+import spray.routing.HttpService
+import spray.routing.directives.{DebuggingDirectives,LogEntry}
+
 import scala.concurrent.duration._
 
 /**
@@ -51,5 +56,12 @@ trait RestService extends HttpService {
 
 class RestServiceActor extends Actor with RestService {
   def actorRefFactory = context
-  def receive = runRoute(route)
+
+  def requestMethodAndResponseStatusAsInfo(req: HttpRequest): Any => Option[LogEntry] = {
+    case res: HttpResponse => Some(LogEntry(req.method + ":" + req.uri + ":" + res.message.status, InfoLevel))
+    case _ => None
+  }
+
+  def routeWithLogging = DebuggingDirectives.logRequestResponse(requestMethodAndResponseStatusAsInfo _)(route)
+  def receive = runRoute(routeWithLogging)
 }
