@@ -20,6 +20,12 @@ This will start an HTTP service at 0.0.0.0:7777
 | POST | `/counter/:name:` | `{ "value": Integer }` | Set a value for a counter |
 
 ## Notes
+#### Design
 In accordance with the [CAP theorem](https://en.wikipedia.org/wiki/CAP_theorem), Counters is AP, meaning it is available and tolerant to network partitioning.
 
 <sup>[1](#fn1)</sup>In order to counter the lack of consistency, the endpoint `/counter/:name:/consistent_value` synchronously blocks while it performs a consensus on a given counter. 
+
+#### Dependencies
+- [Spray](http://spray.io)
+- [Akka](http://akka.io)
+- [pablosmedina/ckite](https://github.com/pablosmedina/ckite)
