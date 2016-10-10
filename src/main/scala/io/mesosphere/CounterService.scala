@@ -1,54 +1,82 @@
 package io.mesosphere
 
-import akka.actor.{Actor,Props}
+import akka.actor.Actor
 import akka.event.Logging._
-import akka.pattern.ask
-import akka.util.Timeout
-import spray.http.HttpRequest
-import spray.http.HttpResponse
-import spray.routing.HttpService
-import spray.routing.directives.{DebuggingDirectives,LogEntry}
+import spray.http.{HttpHeader, HttpRequest, HttpResponse}
+import spray.routing.{Directive1, HttpService}
+import spray.routing.directives.{ClassMagnet, DebuggingDirectives, LogEntry}
 
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import ckite.CKiteBuilder
+import ckite.rpc.FinagleThriftRpc
 
 /**
   * Created by mgates on 10/8/16.
+  * Spray HTTP service using CKite for clustering
   */
 trait CounterService extends HttpService {
   implicit def executionContext = actorRefFactory.dispatcher
-  implicit val timeout = Timeout(1.second)
-  val counterActor = actorRefFactory.actorOf(Props[CounterActor])
 
+  // Initialize and start a CKite cluster
+  var store = new KVStore()
+  val cluster = CKiteBuilder().listenAddress("0.0.0.0:7778").rpc(FinagleThriftRpc)
+    .stateMachine(store).bootstrap(true).build
+  cluster.start()
+
+  // REST Routes
   val route =
+    // Health check ping
     path("ping") {
       get {
-        complete("OK")
+        complete("OK\n")
       }
     } ~
+    // POST /config
     path("config") {
       post {
         entity(as[ActorConfig]) { config =>
-          complete(s"Actors ${config.actors mkString ", "} posted")
+          complete {
+            for(actor <- config.actors) { cluster.addMember(s"$actor:7778") }
+            s"Config for actors posted: ${ config.actors mkString ", " }\n"
+          }
         }
       }
     } ~
     pathPrefix("counter" / Segment ) { counterName =>
       path("value") {
+        // GET /counter/:name:/value
         get {
           complete {
-            (counterActor ? Get(counterName)).mapTo[Int].map(value => s"$value")
+            val result = store.applyRead(Get(counterName))
+            val value = result match {
+              case Some(v) => v
+              case None => 0
+            }
+            s"$value\n"
           }
         }
       } ~
       path("consistent_value") {
+        // GET /counter/:name:/consistent_value
         get {
-          complete(s"Requested a consistent value for $counterName")
+          complete {
+            val readFuture: Future[Option[String]] = cluster.read(Get(counterName))
+            val result = Await.result(readFuture, 10.seconds)
+            println(result.getClass)
+            val value = result match {
+              case Some(v) => v
+              case None => 0
+            }
+            s"${value.getClass}\n"
+          }
         }
       } ~
+      // POST /counter/:name:
       post {
         entity(as[CounterValue]) { counterValue =>
-          counterActor ! Set(counterName, counterValue)
-          complete(s"Posted a value of ${counterValue.value} to counter $counterName")
+          cluster.write(Put(counterName, counterValue.value))
+          complete(s"Posted a value of ${counterValue.value} to counter $counterName\n")
         }
       }
     }
