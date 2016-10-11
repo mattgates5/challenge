@@ -44,5 +44,5 @@ class KVStore extends StateMachine{
 }
 
 // Case classes for handling gets and puts
-case class Put(key: String, value: Int) extends WriteCommand[String]
-case class Get(key: String) extends ReadCommand[Option[String]]
+case class Put(key: String, value: Int) extends WriteCommand[Int]
+case class Get(key: String) extends ReadCommand[Option[Int]]

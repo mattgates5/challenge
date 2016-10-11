@@ -61,14 +61,9 @@ trait CounterService extends HttpService {
         // GET /counter/:name:/consistent_value
         get {
           complete {
-            val readFuture: Future[Option[String]] = cluster.read(Get(counterName))
-            val result = Await.result(readFuture, 10.seconds)
-            println(result.getClass)
-            val value = result match {
-              case Some(v) => v
-              case None => 0
-            }
-            s"${value.getClass}\n"
+            val readFuture: Future[Option[Int]] = cluster.read(Get(counterName))
+            val result = Await.result(readFuture, 10.seconds).getOrElse(0)
+            s"${result}\n"
           }
         }
       } ~
