@@ -15,10 +15,11 @@
   </licenses>
 
   <properties>
-    <skipTests>true</skipTests>
+    <skipTests>false</skipTests>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.assembly.plugin.version>2.4</maven.assembly.plugin.version>
+    <maven.assembly.plugin.version>2.6</maven.assembly.plugin.version>
+    <maven.shade.version>1.5</maven.shade.version>
     <encoding>UTF-8</encoding>
     <scala.version>2.11.5</scala.version>
     <scala.compat.version>2.11</scala.compat.version>
@@ -30,8 +31,16 @@
     <ckite.version>0.2.1</ckite.version>
     <slf4j.version>1.7.5</slf4j.version>
     <thrift.version>0.9.3</thrift.version>
-    <twitter.version>6.37.0</twitter.version>
+    <twitter.version>6.27.0</twitter.version>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>maven-twttr</id>
+      <name>Maven Twitter Repo</name>
+      <url>http://maven.twttr.com</url>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
@@ -83,11 +92,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libfb303</artifactId>
-      <version>${thrift.version}</version>
     </dependency>
     <dependency>
       <groupId>com.twitter</groupId>
@@ -176,20 +180,48 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven.shade.version}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>shaded</shadedClassifierName>
+              <artifactSet>
+                <includes>
+                  <include>*:*</include>
+                </includes>
+              </artifactSet>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>reference.conf</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Main-Class>io.mesosphere.CounterDB</Main-Class>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>${maven.assembly.plugin.version}</version>
         <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>io.mesosphere.challenge</mainClass>
-            </manifest>
-          </archive>
+          <descriptors>
+            <descriptor>src/assembly/assembly.xml</descriptor>
+          </descriptors>
         </configuration>
         <executions>
           <execution>
+            <id>make-assembly</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
