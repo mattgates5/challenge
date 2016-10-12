@@ -76,7 +76,7 @@ trait CounterService extends HttpService {
           complete {
             val readFuture: Future[Option[Int]] = cluster.read(Get(counterName))
             val result = Await.result(readFuture, 10.seconds).getOrElse(0)
-            s"${result}\n"
+            s"$result\n"
           }
         }
       } ~

@@ -18,6 +18,11 @@ _A highly available distributed database...of counters_
 - [pablosmedina/ckite](https://github.com/pablosmedina/ckite)
 
 ### Build / Execution
+To run tests:
+```
+mvn test
+```
+
 To build the database run:
 ```
 mvn package
