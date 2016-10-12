@@ -5,3 +5,4 @@ ENV BOOTSTRAP false
 ADD target/challenge-1.0-SNAPSHOT-assembly.tar.gz /home/
 CMD ["/home/challenge/bin/challenge-executable"]
 EXPOSE 7777
+EXPOSE 7778
