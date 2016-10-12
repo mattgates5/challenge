@@ -18,16 +18,11 @@ _A highly available distributed database...of counters_
 - [pablosmedina/ckite](https://github.com/pablosmedina/ckite)
 
 ### Build / Execution
-To run tests:
-```
-mvn test
-```
-
 To build the database run:
 ```
-mvn package
+./build.sh
 ```
-The fully assembled result will be available as `target/challenge-${pacakge.version}-assembly.tar.gz`. 
+The fully assembled result will be available as `target/challenge-${pacakge.version}-assembly.tar.gz` and as a docker image called `mattgates5/challenge:1.0`
 
 To run the cluster, you will need to set the environment variable `BOOTSTRAP` to `true` for the first node as per the design notes below, in order to get the cluster running<sup><a href="#fn2">2</a></sup>. 
 
@@ -40,10 +35,6 @@ All other nodes can be run just with:
 challenge/bin/challenge-executable
 ```
 ### Docker
-I provided a Dockerfile as well, for testing the deployment of the DB. To build the image:
-```
-docker build -t mattgates5/challenge:1.0 .
-```
 As I mentioned above, the first node will be bootstrapped. You will need to pass `-e BOOTSTRAP='true'` to the docker run command to enable the first node.
 
 ## Design
