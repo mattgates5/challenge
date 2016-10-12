@@ -2,10 +2,11 @@ package io.mesosphere
 
 import akka.actor.Actor
 import akka.event.Logging._
-import spray.http.{HttpHeader, HttpRequest, HttpResponse}
-import spray.routing.{Directive1, HttpService}
-import spray.routing.directives.{ClassMagnet, DebuggingDirectives, LogEntry}
+import spray.http.{HttpRequest, HttpResponse}
+import spray.routing.HttpService
+import spray.routing.directives.{DebuggingDirectives, LogEntry}
 
+import scala.util.Try
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import ckite.CKiteBuilder
@@ -18,10 +19,19 @@ import ckite.rpc.FinagleThriftRpc
 trait CounterService extends HttpService {
   implicit def executionContext = actorRefFactory.dispatcher
 
-  // Initialize and start a CKite cluster
+  // Initialize key-value store
   var store = new KVStore()
-  val cluster = CKiteBuilder().listenAddress("0.0.0.0:7778").rpc(FinagleThriftRpc)
-    .stateMachine(store).bootstrap(true).build
+
+  // Read bootstrap variable
+  val bootstrap = Try(System.getenv("BOOTSTRAP").toBoolean).getOrElse(false)
+
+  // Initialize and start a CKite cluster
+  val cluster = CKiteBuilder().listenAddress("0.0.0.0:7778")
+    .rpc(FinagleThriftRpc)
+    .stateMachine(store)
+    .bootstrap(bootstrap)
+    .build
+
   cluster.start()
 
   // REST Routes
@@ -37,7 +47,10 @@ trait CounterService extends HttpService {
       post {
         entity(as[ActorConfig]) { config =>
           complete {
-            for(actor <- config.actors) { cluster.addMember(s"$actor:7778") }
+            for(actor <- config.actors) {
+              cluster.addMember(s"$actor:7778")
+              Thread.sleep(1000)
+            }
             s"Config for actors posted: ${ config.actors mkString ", " }\n"
           }
         }

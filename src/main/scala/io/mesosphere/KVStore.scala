@@ -13,6 +13,11 @@ import ckite.util.Serializer
   * An in-memory distributed Map allowing Puts and Gets operations
   * https://github.com/pablosmedina/ckite
   */
+
+// Case classes for handling gets and puts
+case class Put(key: String, value: Int) extends WriteCommand[Int]
+case class Get(key: String) extends ReadCommand[Option[Int]]
+
 class KVStore extends StateMachine{
   private var map = Map[String, Int]()
   private var lastIndex: Long = 0
@@ -42,7 +47,3 @@ class KVStore extends StateMachine{
   // Called when Log compaction is required
   def takeSnapshot(): ByteBuffer = ByteBuffer.wrap(Serializer.serialize(map))
 }
-
-// Case classes for handling gets and puts
-case class Put(key: String, value: Int) extends WriteCommand[Int]
-case class Get(key: String) extends ReadCommand[Option[Int]]
