@@ -1,4 +1,4 @@
-package io.mesosphere
+package io.mattgates
 
 import java.nio.ByteBuffer
 import scala.collection.mutable.Map

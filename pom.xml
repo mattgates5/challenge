@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.mesosphere</groupId>
+  <groupId>io.mattgates</groupId>
   <artifactId>challenge</artifactId>
   <version>1.0</version>
   <name>${project.artifactId}</name>
@@ -199,7 +199,7 @@
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <Main-Class>io.mesosphere.CounterDB</Main-Class>
+                    <Main-Class>io.mattgates.CounterDB</Main-Class>
                   </manifestEntries>
                 </transformer>
               </transformers>

@@ -1,4 +1,4 @@
-package io.mesosphere
+package io.mattgates
 
 import org.scalatest.FlatSpec
 import spray.testkit.ScalatestRouteTest

@@ -1,4 +1,4 @@
-package io.mesosphere
+package io.mattgates
 
 import akka.actor.Actor
 import akka.event.Logging._

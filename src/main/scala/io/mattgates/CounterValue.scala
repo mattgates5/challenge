@@ -1,4 +1,4 @@
-package io.mesosphere
+package io.mattgates
 
 import spray.httpx.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
