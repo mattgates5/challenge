@@ -1,11 +1,12 @@
-package io.mattgates
+package io.mattgates.counterservice
 
 import java.nio.ByteBuffer
-import scala.collection.mutable.Map
-import ckite.rpc.ReadCommand
-import ckite.rpc.WriteCommand
+
+import ckite.rpc.{ReadCommand, WriteCommand}
 import ckite.statemachine.StateMachine
 import ckite.util.Serializer
+
+import scala.collection.mutable
 
 /**
   * Adapted by mgates on 10/9/16.
@@ -15,11 +16,11 @@ import ckite.util.Serializer
   */
 
 // Case classes for handling gets and puts
-case class Put(key: String, value: Int) extends WriteCommand[Int]
-case class Get(key: String) extends ReadCommand[Option[Int]]
+final case class Put(key: String, value: Int) extends WriteCommand[Int]
+final case class Get(key: String) extends ReadCommand[Option[Int]]
 
 class KVStore extends StateMachine{
-  private var map = Map[String, Int]()
+  private var map = mutable.Map[String, Int]()
   private var lastIndex: Long = 0
 
   // Called when consensus reached for a write
@@ -41,7 +42,7 @@ class KVStore extends StateMachine{
 
   // Called during Log replay on startup and upon installSnapshot requests
   def restoreSnapshot(byteBuffer: ByteBuffer) = {
-    map = Serializer.deserialize[Map[String, Int]](byteBuffer.array())
+    map = Serializer.deserialize[mutable.Map[String, Int]](byteBuffer.array())
   }
 
   // Called when Log compaction is required
