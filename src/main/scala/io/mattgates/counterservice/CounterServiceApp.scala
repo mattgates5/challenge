@@ -1,51 +1,44 @@
 package io.mattgates.counterservice
 
 import akka.actor.ActorSystem
+import akka.event.Logging._
 import akka.http.scaladsl._
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.server.RouteResult
+import akka.http.scaladsl.server.directives.{DebuggingDirectives, LogEntry}
 import akka.stream.ActorMaterializer
 import ckite.CKite
-import com.typesafe.config.{Config, ConfigFactory}
-import io.mattgates.counterservice.config.{AppConfig, CKiteConfig}
-import io.mattgates.counterservice.util.{ActorSystemProvider, ClusterProviderComponent}
+import io.mattgates.counterservice.config.ConfigComponent
 
 import scala.concurrent.ExecutionContext
 
 /**
   * @author Matt Gates
   */
-object CounterServiceApp {
+object CounterServiceApp extends ActorSystemProvider
+  with ConfigComponent with ClusterProviderComponent with CounterServiceAPI {
 
-  def main(args: Array[String]): Unit = {
-
-    val config: Config = ConfigFactory.load()
-
-    val service = new CounterService(config)
-  }
-}
-
-/**
-  * CounterService object for running service cluster
-  * @param config
-  */
-class CounterService(config: Config) extends ActorSystemProvider
-  with ClusterProviderComponent
-  with CounterServiceAPI {
-
-  val appConfig: AppConfig = AppConfig(config.getConfig("application"))
-  val ckiteConfig: CKiteConfig = CKiteConfig(config.getConfig("ckite"))
-
-  implicit val actorSystem = ActorSystem(appConfig.name)
+  implicit val system = ActorSystem(appConfig.name)
   implicit val materializer = ActorMaterializer()
-  implicit val executionContext: ExecutionContext = actorSystem.dispatcher
+  implicit val executionContext: ExecutionContext = system.dispatcher
 
   val store: KVStore = new KVStore
   val cluster: CKite = ClusterProvider(ckiteConfig, store)
 
-  val bindingFuture = Http().bindAndHandle(route, appConfig.address, appConfig.port)
+  def main(args: Array[String]): Unit = {
+    // Start CKite cluster
+    cluster.start()
 
-  bindingFuture
-    .flatMap(_.unbind())
-    .onComplete(_ => actorSystem.terminate())
+    // Start HTTP server
+    Http().bindAndHandle(routeWithLogging, appConfig.address, appConfig.port)
+  }
+
+  def requestMethodAndResponseStatusAsInfo(req: HttpRequest): RouteResult => Option[LogEntry] = {
+    case RouteResult.Complete(res) => Some(LogEntry(req.method + ":" + req.uri + ":" + res.status, InfoLevel))
+    case _ => None
+  }
+
+  def routeWithLogging: server.Route = {
+    DebuggingDirectives.logRequestResult(requestMethodAndResponseStatusAsInfo _)(route)
+  }
 }
-
-

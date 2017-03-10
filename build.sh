@@ -16,6 +16,5 @@ if [[ $? -gt 0 ]]; then
   echo "docker executable not found"
 fi
 
-mvn clean package
-docker build -t mattgates5/challenge:1.0 .
+mvn clean package && docker build -t mattgates5/counterservice:2.0 .
 

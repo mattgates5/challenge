@@ -1,15 +1,12 @@
 package io.mattgates.counterservice
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import ckite.CKite
-import io.mattgates.counterservice.util.ActorSystemProvider
 import spray.json._
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
 /**
   * Created by mgates on 3/4/17.
@@ -23,7 +20,6 @@ trait JsonMarshaller extends SprayJsonSupport with DefaultJsonProtocol {
 }
 
 trait CounterServiceAPI extends ActorSystemProvider with JsonMarshaller {
-  implicit val executionContext: ExecutionContext
 
   val store: KVStore
   val cluster: CKite
@@ -49,8 +45,9 @@ trait CounterServiceAPI extends ActorSystemProvider with JsonMarshaller {
       path("value") {
         get {
           complete {
-            val result = Option(store.applyRead(Get(counter)))
-            s"${result.getOrElse(0)}\n"
+            val readFuture: Future[Option[Int]] = cluster.readLocal(Get(counter))
+            val value = Await.result(readFuture, 10.seconds).getOrElse(0)
+            s"$value\n"
           }
         }
       } ~
@@ -58,15 +55,15 @@ trait CounterServiceAPI extends ActorSystemProvider with JsonMarshaller {
         get {
           complete {
             val readFuture: Future[Option[Int]] = cluster.read(Get(counter))
-            val result = Await.result(readFuture, 10.seconds)
-            s"${result.getOrElse(0)}\n"
+            val value = Await.result(readFuture, 10.seconds).get
+            s"$value\n"
           }
         }
       } ~
       post {
         entity(as[CounterValue]) { counterValue =>
           cluster.write(Put(counter, counterValue.value))
-          complete(s"Posted a value of ${counterValue.value} to counter $counter\n")
+          complete(s"Posted a value of ${counterValue.value} to $counter\n")
         }
       }
     }

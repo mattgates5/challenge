@@ -19,7 +19,7 @@ import scala.collection.mutable
 final case class Put(key: String, value: Int) extends WriteCommand[Int]
 final case class Get(key: String) extends ReadCommand[Option[Int]]
 
-class KVStore extends StateMachine{
+class KVStore extends StateMachine {
   private var map = mutable.Map[String, Int]()
   private var lastIndex: Long = 0
 
@@ -35,6 +35,11 @@ class KVStore extends StateMachine{
   // Called when a read has been received
   def applyRead = {
     case Get(key) => map.get(key)
+  }
+
+  // Direct local read from the store
+  def directRead(key: String): Option[Int] = {
+    map.get(key)
   }
 
   // Know the last applied write on log replay to provide 'exactly-once' semantics

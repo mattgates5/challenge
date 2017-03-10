@@ -1,4 +1,4 @@
-# Counters
+# CounterService
 
 _A highly available distributed database...of counters_
 
@@ -13,9 +13,12 @@ _A highly available distributed database...of counters_
 | POST | `/counter/:name:` | `{ "value": Integer }` | Set a value for a counter |
 
 #### Dependencies
-- [Spray](http://spray.io)
 - [Akka](http://akka.io)
+- Typesafe Config
+- Spray JSON
+- SLF4J
 - [pablosmedina/ckite](https://github.com/pablosmedina/ckite)
+- Twitter Finagle
 
 ### Build / Execution
 To build the database run:
@@ -27,12 +30,12 @@ The fully assembled result will be available as `target/challenge-${pacakge.vers
 To run the cluster, you will need to set the environment variable `BOOTSTRAP` to `true` for the first node as per the design notes below, in order to get the cluster running<sup><a href="#fn2">2</a></sup>. 
 
 ```bash
-BOOTSTRAP=true challenge/bin/challenge-executable
+BOOTSTRAP=true counterservice/bin/counterservice-executable
 ```
 
 All other nodes can be run just with:
 ```bash
-challenge/bin/challenge-executable
+counterservice/bin/counterservice-executable
 ```
 ### Docker
 As I mentioned above, the first node will be bootstrapped. You will need to pass `-e BOOTSTRAP='true'` to the docker run command to enable the first node.

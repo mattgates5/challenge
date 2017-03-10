@@ -9,16 +9,16 @@
   <fileSets>
     <fileSet>
       <directory>${basedir}/src/bin</directory>
-      <outputDirectory>challenge/bin</outputDirectory>
+      <outputDirectory>counterservice/bin</outputDirectory>
       <includes>
-        <include>challenge-executable</include>
+        <include>counterservice-executable</include>
       </includes>
     </fileSet>
     <fileSet>
       <directory>${basedir}/target/</directory>
-      <outputDirectory>challenge/lib</outputDirectory>
+      <outputDirectory>counterservice/lib</outputDirectory>
       <includes>
-        <include>challenge-*-shaded.jar</include>
+        <include>counterservice-*-shaded.jar</include>
       </includes>
     </fileSet>
   </fileSets>

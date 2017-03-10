@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ $BOOTSTRAP = true ]]; then
+    echo "Bootstrapping cluster"
+    java -jar $DIR/../lib/counterservice-*-shaded.jar -Dckite.bootstrap=true $@
+else
+    echo "Not in bootstrap mode"
+    java -jar $DIR/../lib/counterservice-*-shaded.jar $@
+fi

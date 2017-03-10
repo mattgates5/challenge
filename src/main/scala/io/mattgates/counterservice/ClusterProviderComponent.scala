@@ -1,8 +1,7 @@
-package io.mattgates.counterservice.util
+package io.mattgates.counterservice
 
 import ckite.rpc.FinagleThriftRpc
 import ckite.{CKite, CKiteBuilder}
-import io.mattgates.counterservice.KVStore
 import io.mattgates.counterservice.config.CKiteConfig
 
 /**
